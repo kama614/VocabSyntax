@@ -31,3 +31,13 @@ public class Vocab {
 	private LocalDateTime updatedAt;
 
 }
+
+/*
+ @JsonFormat
+ Jackson（JSON を扱うライブラリ）を使うときに、日付や時刻のフォーマットを指定するためのアノテーション
+✅ timezone = "Asia/Tokyo" を付けると JST（日本時間）に変換 できる。
+✅ Date だけでなく LocalDateTime にも適用可能。
+✅ JSON の出力時も入力時もフォーマットが統一されるので便利。
+ 
+ 
+ */

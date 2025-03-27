@@ -1,3 +1,4 @@
+// データベース上の「単語（Vocab）」と「単語の種類（VocabType）」を管理する REST API
 package com.example.app.controller;
 
 import java.util.List;
@@ -21,21 +22,22 @@ import com.example.app.mapper.VocabMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-@RestController
+@RequiredArgsConstructor // Lombokを使い、finalフィールド（VocabMapper）のコンストラクタを自動生成
+@RestController //  REST API を提供
 @RequestMapping("/syntax/vocabs")
 public class VocabController {
 
-	private final VocabMapper mapper;
+	private final VocabMapper mapper; // MyBatisのMapper インターフェース で、データベースとやり取りするために使用
+	// mapperを通じてデータを取得・更新・削除するのに記述
 
-	// 単語リストの取得
+	// 単語リストの取得(全ての単語を取得し、リストを返す)
 	@GetMapping
 	public ResponseEntity<List<Vocab>> getVocabs() {
 		List<Vocab> vocabs = mapper.selectAll();
 		return new ResponseEntity<>(vocabs, HttpStatus.OK);
 	}
 
-	// IDに基づく単語の取得
+	// 指定されたIDの単語を取得(ID が見つからなければ 404 NOT FOUND を返す)
 	@GetMapping("/{id}")
 	public ResponseEntity<Vocab> getVocabsById(@PathVariable int id) {
 		Vocab vocab = mapper.selectById(id);
@@ -59,7 +61,7 @@ public class VocabController {
 		return new ResponseEntity<>(vocabTypes, HttpStatus.OK);
 	}
 
-	// 単語の追加
+	// 単語の追加(@Valid によりバリデーションを実行し、エラーがあれば 400 BAD REQUESTを返す)
 	@PostMapping
 	public ResponseEntity<String> addVocab(
 			@RequestBody @Valid Vocab vocab,
@@ -72,7 +74,7 @@ public class VocabController {
 		return new ResponseEntity<>("succeeded to add vocab", HttpStatus.OK);
 	}
 
-	// 単語の編集
+	// 単語の編集(@Valid によりバリデーションを実行し、エラーがあれば 400 BAD REQUESTを返す)
 	@PutMapping
 	public ResponseEntity<String> updateVocab(
 			@RequestBody @Valid Vocab vocab,
@@ -95,3 +97,44 @@ public class VocabController {
 	}
 
 }
+
+/*
+・Spring Boot の REST API コントローラーとして動作。
+・データの取得・追加・更新・削除（CRUD） を行う。
+・MyBatis の VocabMapper を使ってデータベース操作を行う。
+・バリデーションを @Valid で実施し、不正なデータを防ぐ。
+
+★ResponseEntityを使う理由
+１．HTTP ステータスコードを自由に変更できる
+通常の return obj; だと 200 OK 固定 になってしまうが、
+ResponseEntity を使えば、例えば 404 Not Found や 400 Bad Request を明示的に設定できる。
+
+２．レスポンスヘッダーを設定できる
+ResponseEntity を使うと、カスタムヘッダーを追加 できる。
+
+３．エラーハンドリングを柔軟にできる
+例えば、データが見つからなかったときに 404 Not Found を返すことが簡単にできる。
+
+@PathVariable
+URL のパス（path）に含まれる値を取得 するための Spring のアノテーション。
+REST API のエンドポイントに動的な値を渡すとき に使用。
+@RequestParam との違い → @PathVariable は リソースを識別、@RequestParam は フィルタリングや検索 に使う。
+
+@RequestBody
+リクエストボディ（JSON）を Java オブジェクトに変換する。
+✅ @Valid と組み合わせると、入力チェック（バリデーション） ができる。
+✅ 配列（List）も受け取れる (List<Vocab> vocabs)。
+✅ @RequestParam とは異なり、URL のクエリではなく JSON 形式でデータを送信 するのに適している。
+
+ */
+
+
+
+
+
+
+
+
+
+
+

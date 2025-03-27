@@ -5,24 +5,33 @@
 
 	<!-- VocabMapperインターフェースに対応 -->
 
+	<!-- SQLの結果とJavaのオブジェクト（クラス）を マッピング するために使う設定。 
+	特に テーブル結合（JOIN）で取得したデータをオブジェクトに変換するときに重要 -->
 	<resultMap id="joinMap" type="Vocab" autoMapping="true">
 		<association property="vocabType" javaType="VocabType">
 			<id property="id" column="type_id" />
 			<result property="name" column="type_name" />
 		</association>
 	</resultMap>
+	<!-- この resultMap は、Vocab オブジェクトの中に VocabType を関連付けるための設定。 
+	✅ Vocab クラスの中にVocabType というオブジェクトを持たせる。 
+	✅ VocabType の id に type_id の値をマッピングする。 
+	✅ VocabType の name に type_name の値をマッピングする。 
+	property="Javaの変数名" column="SQLのカラム名"
+	
+	<association> は 1対1の関連 をマッピングするためのタグ(JOIN時)
+	property="vocabType"はdomain/Vocabクラスの private VocabType vocabType;
+	javaType="VocabType"はvocabTypeに格納されるオブジェクトのクラス名-->
 
-	<sql id="baseSelect"><!-- 使いまわしできるように設定 -->
+	<sql id="baseSelect"><!-- 使いまわしできるように設定 <include refid="baseSelect" />を使う -->
 		SELECT
 		v.id,v.word,v.meaning,
 		v.registered_at,v.updated_at,
-		vt.id AS
-		type_id,vt.name AS type_name
+		vt.id AS type_id,
+		vt.name AS type_name
 		FROM vocabs AS v
-		JOIN vocab_types
-		AS vt
-		ON
-		v.type_id=vt.id
+		JOIN vocab_types AS vt
+		ON v.type_id=vt.id
 	</sql>
 
 	<select id="selectAll" resultMap="joinMap">
@@ -48,21 +57,41 @@
 	<insert id="insert" parameterType="Vocab">
 		INSERT INTO vocabs
 		(word,meaning,type_id,registered_at,updated_at)
-		VALUES (#{word},
-		#{meaning}, #{vocabType.id}, NOW(), NOW())
+		VALUES (
+		#{word},
+		#{meaning}, 
+		#{vocabType.id}, 
+		NOW(), 
+		NOW())
 	</insert>
 
 	<update id="update" parameterType="Vocab">
 		UPDATE vocabs
-		SET word = #{word}, meaning = #{meaning},
+		SET 
+		word = #{word}, 
+		meaning = #{meaning},
 		type_id = #{vocabType.id},
 		updated_at = NOW()
 		WHERE id = #{id}
 	</update>
 
 	<delete id="delete" parameterType="int">
-		DELETE FROM vocabs WHERE id =
-		#{id}
+		DELETE FROM vocabs 
+		WHERE id = #{id}
 	</delete>
+	
+	<!-- 
+	resultMap
+	SQLの結果を複雑なマッピング を行う場合に使用。
+	例えば、親子関係や他のオブジェクトが含まれている場合です。
+	insert, update, delete などの操作では、データを返さないため、resultMapは必要ありません。
 
+	resultType
+	単純な1対1のマッピングが必要な場合に使います。
+	VocabType などの単純なデータクラスに対しては、
+	resultType の方が簡潔で、コードもわかりやすくなります。
+
+	parameterType
+	Mapperインターフェースのメソッドの引数の型(引数がない場合は記述なし)
+	-->
 </mapper>
